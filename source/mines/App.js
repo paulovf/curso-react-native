@@ -14,10 +14,12 @@ import {
     showMines,
     invertFlag,
     flagsUsed,
+    spreadMines,
 } from './src/functions';
 
 export default class App extends Component {
-
+    stateInicial = 1;
+    
     constructor(props){
         super(props);
         this.state = this.createState();
@@ -30,6 +32,9 @@ export default class App extends Component {
     };
 
     createState = () => {
+        if(this.stateInicial === 0){
+            this.stateInicial = 1;
+        }
         const cols = params.getColumnsAmount();
         const rows = params.getRowsAmount();
         return {
@@ -41,6 +46,10 @@ export default class App extends Component {
     };
 
     onOpenField = (row, column) => {
+        if(this.stateInicial === 1){
+            this.stateInicial = 0;
+            spreadMines(this.state.board, this.minesAmount(), row, column);
+        }
         const board = cloneBoard(this.state.board);
         openField(board, row, column);
         const lost = hadExplosion(board);
@@ -48,17 +57,21 @@ export default class App extends Component {
 
         if (lost) {
             showMines(board);
-            Alert.alert("Perdeeeeeeeu!", '"Que buuuuuuurro!');
+            Alert.alert("Perdeeeeeeeu!", '"Que pena :(');
         }
 
         if (won) {
-            Alert.alert('Parabéns', 'Você Venceu!')
+            Alert.alert('Parabéns', 'Você Venceu :)')
         }
 
         this.setState({ board, lost, won });
     };
 
     onSelectField = (row, column) => {
+        if(this.stateInicial === 1){
+            this.stateInicial = 0;
+            spreadMines(this.state.board, this.minesAmount(), row, column);
+        }
         const board = cloneBoard(this.state.board);
         invertFlag(board, row, column);
         const won  = wonGame(board);
@@ -66,12 +79,13 @@ export default class App extends Component {
         if (won) {
             Alert.alert("Parabéns!", '"Você Venceu!');
         }
-
+        
         this.setState({ board, won });
     };
 
     onLevelSelected = level => {
         params.difficultLevel = level;
+        this.stateInicial = 1;
         this.setState(this.createState());
     };
 

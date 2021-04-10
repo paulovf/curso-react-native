@@ -14,7 +14,11 @@ const createBoard = (rows, columns) => {
     });
 };
 
-const spreadMines = (board, minesAmount) => {
+const spreadMines = (board, minesAmount, row, column) => {
+    /*const apenasLinha = board => board.row;
+    const apenasColuna = board => board.column;
+    const linhasBloqueadas = getNeighbors(board, row, column).map(apenasLinha);
+    const colunasBloqueadas = getNeighbors(board, row, column).map(apenasColuna);*/
     const rows = board.length;
     const columns = board[0].length;
     let minesPlanted = 0;
@@ -22,7 +26,8 @@ const spreadMines = (board, minesAmount) => {
         const rowSel = parseInt(Math.random() * rows, 10);
         const columnSel = parseInt(Math.random() * columns, 10);
 
-        if(!board[rowSel][columnSel].mined){
+        //if(!board[rowSel][columnSel].mined && rowSel != row && columnSel != column && linhasBloqueadas.indexOf(rowSel) == -1 && colunasBloqueadas.indexOf(rowSel) == -1){
+        if(!board[rowSel][columnSel].mined && rowSel != row && columnSel != column){
             board[rowSel][columnSel].mined = true;
             minesPlanted++;
         }
@@ -31,7 +36,7 @@ const spreadMines = (board, minesAmount) => {
 
 const createMinedBoard = (rows, columns, minesAmount) => {
     const board = createBoard(rows, columns);
-    spreadMines(board, minesAmount);
+    //spreadMines(board, minesAmount);
     return board;
 };
 
@@ -106,5 +111,6 @@ export {
     wonGame,
     showMines,
     invertFlag,
-    flagsUsed
+    flagsUsed,
+    spreadMines
 }
