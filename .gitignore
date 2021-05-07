@@ -1,0 +1,4 @@
+knexfile.js
+*.log
+nome_modules
+.env
