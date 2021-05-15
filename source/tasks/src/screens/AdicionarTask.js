@@ -1,82 +1,92 @@
-import React, { Component } from 'react';
-import { 
-    Modal, 
-    View, 
-    StyleSheet, 
-    TouchableWithoutFeedback,
+import React, { Component } from 'react'
+import {
+    Modal,
+    View,
     Text,
-    TouchableOpacity,
     TextInput,
+    DatePickerIOS,
+    StyleSheet,
+    TouchableWithoutFeedback,
+    TouchableOpacity,
+    Alert,
+    DatePickerAndroid,
     Platform
-} from 'react-native';
-import moment from 'moment';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import commomStyles from '../commomStyles';
+} from 'react-native'
+import moment from 'moment'
+import commonStyles from '../commomStyles'
 
-const initialState = { desc: '', date: new Date(), showDatePicker: false };
 
 export default class AddTask extends Component {
 
-    state = {
-        ...initialState
-    };
+    constructor(props) {
+        super(props)
+        this.state = this.getInitialState()
+    }
+
+    getInitialState = () => {
+        return {
+            desc: '',
+            date: new Date()
+        }
+    }
 
     save = () => {
-        const newTask = {
-            //...this.state
-            // ou
-            desc: this.state.desc,
-            date: this.state.date,
-        };
-
-        if(this.props.onSave){
-            this.props.onSave(newTask);
+        if (!this.state.desc.trim()) {
+            Alert.alert('Dados inválidos', 'Informe uma descrição para a tarefa')
+            return
         }
-        this.setState({ ...initialState });
-    };
 
-    getDatePicker = () => {
-        let datePicker = <DateTimePicker
-            value={this.state.date}
-            onChange={({_, date}) => this.setState({ date: date, showDatePicker: false }) }
-            mode="date" />
+        const data = { ...this.state }
+        this.props.onSave(data)
+    }
 
-        const dateString = moment(this.state.date).format('ddd, D [de] MMMM [de] YYYY');
+    handleDateAndroidChanged = () => {
+        DatePickerAndroid.open({
+            date: this.state.date
+        }).then(e => {
+            if (e.action !== DatePickerAndroid.dismissedAction) {
+                const momentDate = moment(this.state.date)
+                momentDate.date(e.day)
+                momentDate.month(e.month)
+                momentDate.year(e.year)
+                this.setState({ date: momentDate.toDate() })
+            }
+        })
+    }
 
-        if(Platform.OS === 'android'){
+    render() {
+        let datePicker = null
+        if (Platform.OS === 'ios') {
+            datePicker = <DatePickerIOS mode='date' date={this.state.date}
+                onDateChange={date => this.setState({ date })} />
+        } else {
             datePicker = (
-                <View>
-                    <TouchableOpacity
-                        onPress={() => this.setState({ showDatePicker: true })}>
-                        <Text style={styles.date}>
-                            {dateString}
-                        </Text>
-                    </TouchableOpacity>
-                    {this.state.showDatePicker && datePicker}
-                </View>
+                <TouchableOpacity onPress={this.handleDateAndroidChanged}>
+                    <Text style={styles.date}>
+                        {moment(this.state.date).format('ddd, D [de] MMMM [de] YYYY')}
+                    </Text>
+                </TouchableOpacity>
             )
         }
-        return datePicker
-    };
-    
-    render() {
-        return (
-            <Modal transparent={true} visible={this.props.isVisible}
-                onRequestClose={this.props.onCancel}
-                animationType='slide'>
-                <TouchableWithoutFeedback
-                    onPress={this.props.onCancel}>
-                    <View style={styles.background}>
 
-                    </View>
+        return (
+            <Modal onRequestClose={this.props.onCancel}
+                visible={this.props.isVisible}
+                animationType='slide' transparent={true}
+                onShow={() => this.setState({ ...this.getInitialState() })}>
+                <TouchableWithoutFeedback onPress={this.props.onCancel}>
+                    <View style={styles.offset}></View>
                 </TouchableWithoutFeedback>
                 <View style={styles.container}>
-                    <Text style={styles.header}>Nova Tarefa</Text>
-                    <TextInput style={styles.input} placeholder="Informe a descrição..."
-                        value={this.state.desc}
-                        onChangeText={desc => this.setState({ desc: desc })} />
-                    {this.getDatePicker()}
-                    <View style={styles.buttons}>
+                    <Text style={styles.header}>Nova Tarefa!</Text>
+                    <TextInput placeholder="Descrição..." style={styles.input}
+                        onChangeText={desc => this.setState({ desc })}
+                        value={this.state.desc} />
+                    {datePicker}
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end'
+                    }}>
                         <TouchableOpacity onPress={this.props.onCancel}>
                             <Text style={styles.button}>Cancelar</Text>
                         </TouchableOpacity>
@@ -85,55 +95,52 @@ export default class AddTask extends Component {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <TouchableWithoutFeedback
-                    onPress={this.props.onCancel}>
-                    <View style={styles.background}>
-
-                    </View>
+                <TouchableWithoutFeedback onPress={this.props.onCancel}>
+                    <View style={styles.offset}></View>
                 </TouchableWithoutFeedback>
             </Modal>
-        );
+        )
     }
 }
 
-const styles = StyleSheet.create({
-    background: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    },
+var styles = StyleSheet.create({
     container: {
-        backgroundColor: '#fff'
+        backgroundColor: 'white',
+        justifyContent: 'space-between',
     },
-    header: {
-        fontFamily: commomStyles.fontFamily,
-        backgroundColor: commomStyles.colors.today,
-        color: commomStyles.colors.secondary,
-        textAlign: 'center',
-        padding: 15,
-        fontSize: 18
+    offset: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.7)',
     },
-    input: {
-        fontFamily: commomStyles.fontFamily,
-        height: 40,
-        margin: 15,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E3E3E3',
-        borderRadius: 6,
-    },
-    buttons: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-    }, 
     button: {
         margin: 20,
         marginRight: 30,
-        color: commomStyles.colors.today
+        color: commonStyles.colors.default,
+    },
+    header: {
+        fontFamily: commonStyles.fontFamily,
+        backgroundColor: commonStyles.colors.default,
+        color: commonStyles.colors.secondary,
+        textAlign: 'center',
+        padding: 15,
+        fontSize: 15,
+    },
+    input: {
+        fontFamily: commonStyles.fontFamily,
+        width: '90%',
+        height: 40,
+        marginTop: 10,
+        marginLeft: 10,
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#e3e3e3',
+        borderRadius: 6
     },
     date: {
-        fontFamily: commomStyles.fontFamily,
+        fontFamily: commonStyles.fontFamily,
         fontSize: 20,
-        marginLeft: 15,
-        
+        marginLeft: 10,
+        marginTop: 10,
+        textAlign: 'center',
     }
-});
+})
